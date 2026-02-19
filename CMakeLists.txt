@@ -50,14 +50,26 @@ add_executable(barnesHut
 
 target_compile_features(barnesHut PRIVATE cxx_std_17)
 
-# Enable AVX-512 for SIMD optimizations
-include(CheckCXXCompilerFlag)
-check_cxx_compiler_flag("-mavx512f" COMPILER_SUPPORTS_AVX512F)
-if(COMPILER_SUPPORTS_AVX512F)
-    target_compile_options(barnesHut PRIVATE -mavx512f)
-    message(STATUS "AVX-512F support enabled")
+# AVX-512 SIMD support (auto-detected, can be disabled with -DUSE_AVX512=OFF)
+option(USE_AVX512 "Enable AVX-512 SIMD optimizations if supported" ON)
+
+if(USE_AVX512)
+    include(CheckCXXCompilerFlag)
+    check_cxx_compiler_flag("-mavx512f" COMPILER_SUPPORTS_AVX512F)
+    if(COMPILER_SUPPORTS_AVX512F)
+        set(AVX512_FLAG "-mavx512f")
+        message(STATUS "AVX-512F support enabled")
+    else()
+        set(AVX512_FLAG "")
+        message(STATUS "AVX-512F not supported by compiler, using scalar fallback")
+    endif()
 else()
-    message(STATUS "AVX-512F not supported by compiler, using scalar fallback")
+    set(AVX512_FLAG "")
+    message(STATUS "AVX-512 disabled by user, using scalar fallback")
+endif()
+
+if(AVX512_FLAG)
+    target_compile_options(barnesHut PRIVATE ${AVX512_FLAG})
 endif()
 
 target_link_libraries(barnesHut PRIVATE OpenMP::OpenMP_CXX)
@@ -113,11 +125,12 @@ if(HPCLab_BUILD_TESTS)
         OpenMP::OpenMP_CXX
     )
 
+    if(AVX512_FLAG)
+        target_compile_options(testBarnesHut PRIVATE ${AVX512_FLAG})
+    endif()
+
     include(GoogleTest)
     gtest_discover_tests(testBarnesHut)
 else()
     message(STATUS "Unit tests disabled. Use -DHPCLab_BUILD_TESTS=ON to enable.")
 endif()
-
-# Enable AVX support
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx")

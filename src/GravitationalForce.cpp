@@ -1,6 +1,8 @@
 #include "GravitationalForce.h"
 #include <cmath>
+#ifdef __AVX512F__
 #include <immintrin.h>
+#endif
 
 std::array<double, 3> GravitationalForce::calculateForceSOA(
     const std::array<double, 3>& position, double mass,
