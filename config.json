@@ -1,0 +1,14 @@
+{
+  "massRange": [100, 1000000000],
+  "positionRange": [-1, 1],
+  "velocityRange": [-0, 0],
+
+  "timeStep": 1,
+  "maxTime": 3,
+  "numParticles": 100000,
+
+  "barnesHutAlgorithm": true,
+
+  "unittestTolerance": 1e-2,
+  "MAC": 0.4
+}

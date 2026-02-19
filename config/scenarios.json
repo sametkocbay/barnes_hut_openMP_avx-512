@@ -1,0 +1,185 @@
+{
+  "scenarios": {
+    "solar_system": {
+      "description": "Simplified solar system with Sun and 4 planets",
+      "particles": [
+        {
+          "name": "Sun",
+          "position": [0.0, 0.0, 0.0],
+          "velocity": [0.0, 0.0, 0.0],
+          "mass": 100000000.0
+        },
+        {
+          "name": "Mercury",
+          "position": [5.0, 0.0, 0.0],
+          "velocity": [0.0, 14.0, 0.0],
+          "mass": 0.1
+        },
+        {
+          "name": "Venus",
+          "position": [10.0, 0.0, 0.0],
+          "velocity": [0.0, 10.0, 0.0],
+          "mass": 0.5
+        },
+        {
+          "name": "Earth",
+          "position": [15.0, 0.0, 0.0],
+          "velocity": [0.0, 8.0, 0.0],
+          "mass": 1.0
+        },
+        {
+          "name": "Mars",
+          "position": [22.0, 0.0, 0.0],
+          "velocity": [0.0, 6.5, 0.0],
+          "mass": 0.3
+        }
+      ]
+    },
+    "binary_star": {
+      "description": "Two stars orbiting each other with a planet",
+      "particles": [
+        {
+          "name": "Star A",
+          "position": [-5.0, 0.0, 0.0],
+          "velocity": [0.0, -5.0, 0.0],
+          "mass": 500.0
+        },
+        {
+          "name": "Star B",
+          "position": [5.0, 0.0, 0.0],
+          "velocity": [0.0, 5.0, 0.0],
+          "mass": 500.0
+        },
+        {
+          "name": "Planet",
+          "position": [30.0, 0.0, 0.0],
+          "velocity": [0.0, 6.0, 0.0],
+          "mass": 1.0
+        }
+      ]
+    },
+    "galaxy_collision": {
+      "description": "Two galaxy cores approaching each other with surrounding particles",
+      "particles": [
+        {
+          "name": "Galaxy A Core",
+          "position": [-50.0, 0.0, 0.0],
+          "velocity": [2.0, 0.0, 0.0],
+          "mass": 10000.0
+        },
+        {
+          "name": "Galaxy A Star 1",
+          "position": [-55.0, 5.0, 0.0],
+          "velocity": [2.0, -3.0, 0.0],
+          "mass": 1.0
+        },
+        {
+          "name": "Galaxy A Star 2",
+          "position": [-45.0, -5.0, 0.0],
+          "velocity": [2.0, 3.0, 0.0],
+          "mass": 1.0
+        },
+        {
+          "name": "Galaxy A Star 3",
+          "position": [-55.0, -5.0, 2.0],
+          "velocity": [2.0, 2.0, -1.0],
+          "mass": 1.0
+        },
+        {
+          "name": "Galaxy B Core",
+          "position": [50.0, 0.0, 0.0],
+          "velocity": [-2.0, 0.0, 0.0],
+          "mass": 10000.0
+        },
+        {
+          "name": "Galaxy B Star 1",
+          "position": [55.0, 5.0, 0.0],
+          "velocity": [-2.0, -3.0, 0.0],
+          "mass": 1.0
+        },
+        {
+          "name": "Galaxy B Star 2",
+          "position": [45.0, -5.0, 0.0],
+          "velocity": [-2.0, 3.0, 0.0],
+          "mass": 1.0
+        },
+        {
+          "name": "Galaxy B Star 3",
+          "position": [55.0, -5.0, -2.0],
+          "velocity": [-2.0, 2.0, 1.0],
+          "mass": 1.0
+        }
+      ]
+    },
+    "figure_eight": {
+      "description": "Three-body figure-eight periodic orbit (Chenciner-Montgomery)",
+      "particles": [
+        {
+          "name": "Body 1",
+          "position": [-0.97000436, 0.24308753, 0.0],
+          "velocity": [0.466203685, 0.43236573, 0.0],
+          "mass": 1.0
+        },
+        {
+          "name": "Body 2",
+          "position": [0.97000436, -0.24308753, 0.0],
+          "velocity": [0.466203685, 0.43236573, 0.0],
+          "mass": 1.0
+        },
+        {
+          "name": "Body 3",
+          "position": [0.0, 0.0, 0.0],
+          "velocity": [-0.93240737, -0.86473146, 0.0],
+          "mass": 1.0
+        }
+      ]
+    },
+    "cluster": {
+      "description": "A central massive body surrounded by a cluster of smaller bodies",
+      "particles": [
+        {
+          "name": "Central Mass",
+          "position": [0.0, 0.0, 0.0],
+          "velocity": [0.0, 0.0, 0.0],
+          "mass": 5000.0
+        },
+        {
+          "name": "Orbiter 1",
+          "position": [10.0, 0.0, 0.0],
+          "velocity": [0.0, 22.0, 0.0],
+          "mass": 1.0
+        },
+        {
+          "name": "Orbiter 2",
+          "position": [0.0, 15.0, 0.0],
+          "velocity": [-18.0, 0.0, 0.0],
+          "mass": 1.0
+        },
+        {
+          "name": "Orbiter 3",
+          "position": [-12.0, 0.0, 5.0],
+          "velocity": [0.0, -20.0, 0.0],
+          "mass": 1.0
+        },
+        {
+          "name": "Orbiter 4",
+          "position": [0.0, -18.0, -3.0],
+          "velocity": [16.0, 0.0, 0.0],
+          "mass": 1.0
+        },
+        {
+          "name": "Orbiter 5",
+          "position": [8.0, 8.0, 0.0],
+          "velocity": [-14.0, 14.0, 0.0],
+          "mass": 1.0
+        },
+        {
+          "name": "Orbiter 6",
+          "position": [-7.0, -7.0, 7.0],
+          "velocity": [15.0, -15.0, 0.0],
+          "mass": 1.0
+        }
+      ]
+    }
+  }
+}
