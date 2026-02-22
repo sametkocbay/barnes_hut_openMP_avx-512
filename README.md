@@ -89,9 +89,37 @@ Arguments passed to the executable override `config.json` defaults.
 }
 ```
 
+## Visualizations
+
+### Morton (Z-order) Space-Filling Curve
+
+The Morton curve maps 3D coordinates to a 1D index while preserving spatial locality — particles that are close in space stay close along the curve. This property is what makes it ideal for domain decomposition in the MPI implementation.
+
+**2D illustration** showing how the Z-order curve visits each cell:
+
+![Morton Curve 2D](visualization/morton_curve_2d.png)
+
+**3D animated traversal** of the Morton curve on a 4×4×4 octree grid:
+
+![Morton Curve 3D](visualization/morton_curve_3d.gif)
+
+### N-Body Simulation with MPI Domain Decomposition
+
+A small gravitational simulation (80 particles) showing how particles are partitioned across 4 MPI ranks using Morton curve ordering. Colors represent the rank each particle is assigned to, and the decomposition is dynamically rebalanced as particles move:
+
+![N-Body Morton Simulation](visualization/nbody_morton_simulation.gif)
+
+To regenerate these visualizations:
+
+```bash
+pip install matplotlib numpy
+python3 visualization/visualize_morton_curve.py
+```
+
 ## About
 
 This project originated as a university project at TUM. I was involved in both the original implementation and the subsequent HPC optimization and parallelization work.
+
 ## MPI-Parallelized Barnes-Hut (Jülich Approach)
 
 This project includes an MPI-parallelized implementation of the Barnes-Hut algorithm using space-filling curves (Morton/Z-order curves) for domain decomposition, inspired by the approach developed at Jülich Supercomputing Centre.
