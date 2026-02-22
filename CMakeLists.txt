@@ -4,6 +4,14 @@ project(barnesHut LANGUAGES CXX)
 # Enable OpenMP
 find_package(OpenMP REQUIRED)
 
+# Optional MPI support
+option(USE_MPI "Enable MPI parallelization" OFF)
+if(USE_MPI)
+    find_package(MPI REQUIRED)
+    message(STATUS "MPI support enabled")
+    message(STATUS "  MPI C++ compiler: ${MPI_CXX_COMPILER}")
+endif()
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -27,7 +35,13 @@ set(LIB_SOURCES
     src/Particle.cpp
     src/bruteForce.cpp
     src/particleNode.cpp
-        config/JsonParser.cpp
+    src/MortonCurve.cpp
+    config/JsonParser.cpp
+)
+
+# MPI-specific sources (only compiled when MPI is enabled)
+set(MPI_SOURCES
+    src/MPIBarnesHut.cpp
 )
 
 add_executable(barnesHut
@@ -73,6 +87,41 @@ if(AVX512_FLAG)
 endif()
 
 target_link_libraries(barnesHut PRIVATE OpenMP::OpenMP_CXX)
+
+#####################################################################################################
+# MPI Barnes-Hut Executable (only if USE_MPI is ON)
+#####################################################################################################
+if(USE_MPI)
+    add_executable(barnesHutMPI
+        ${LIB_SOURCES}
+        ${MPI_SOURCES}
+        src/mainMPI.cpp
+        include/MortonCurve.h
+        include/MPIBarnesHut.h
+    )
+
+    target_compile_features(barnesHutMPI PRIVATE cxx_std_17)
+    target_include_directories(barnesHutMPI PRIVATE ${MPI_CXX_INCLUDE_PATH})
+    target_link_libraries(barnesHutMPI PRIVATE OpenMP::OpenMP_CXX MPI::MPI_CXX)
+
+    if(AVX512_FLAG)
+        target_compile_options(barnesHutMPI PRIVATE ${AVX512_FLAG})
+    endif()
+
+    # Copy config files for MPI executable
+    add_custom_command(
+        TARGET barnesHutMPI POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_SOURCE_DIR}/config.json
+        ${CMAKE_BINARY_DIR}/
+    )
+    add_custom_command(
+        TARGET barnesHutMPI POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/config
+        ${CMAKE_BINARY_DIR}/config
+    )
+endif()
 
 # Specify the configuration file
 set(CONFIG_FILE config.json)
@@ -131,6 +180,31 @@ if(HPCLab_BUILD_TESTS)
 
     include(GoogleTest)
     gtest_discover_tests(testBarnesHut)
+
+    # MPI comparison test (only if MPI is enabled)
+    if(USE_MPI)
+        add_executable(testMPIBarnesHut
+            tests/MPIBarnesHutTest.cpp
+            ${LIB_SOURCES}
+            ${MPI_SOURCES}
+        )
+
+        target_include_directories(testMPIBarnesHut PRIVATE ${MPI_CXX_INCLUDE_PATH})
+        target_link_libraries(testMPIBarnesHut
+            GTest::gtest_main
+            OpenMP::OpenMP_CXX
+            MPI::MPI_CXX
+        )
+
+        if(AVX512_FLAG)
+            target_compile_options(testMPIBarnesHut PRIVATE ${AVX512_FLAG})
+        endif()
+
+        # Add MPI test with mpirun
+        add_test(NAME MPIBarnesHutTest
+            COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 4 $<TARGET_FILE:testMPIBarnesHut>
+        )
+    endif()
 else()
     message(STATUS "Unit tests disabled. Use -DHPCLab_BUILD_TESTS=ON to enable.")
 endif()

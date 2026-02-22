@@ -92,3 +92,68 @@ Arguments passed to the executable override `config.json` defaults.
 ## About
 
 This project originated as a university project at TUM. I was involved in both the original implementation and the subsequent HPC optimization and parallelization work.
+## MPI-Parallelized Barnes-Hut (Jülich Approach)
+
+This project includes an MPI-parallelized implementation of the Barnes-Hut algorithm using space-filling curves (Morton/Z-order curves) for domain decomposition, inspired by the approach developed at Jülich Supercomputing Centre.
+
+### Key Features of MPI Implementation
+
+- **Morton Curve Domain Decomposition:** Particles are ordered using a Morton (Z-order) space-filling curve, which preserves spatial locality. The ordered particles are then distributed equally among MPI ranks.
+- **Local Essential Tree (LET):** Each rank builds a local tree for its particles and exchanges aggregated "pseudo-particles" with other ranks for long-range force approximation.
+- **Hybrid MPI+OpenMP:** Combines MPI for distributed memory parallelism with OpenMP for shared memory parallelism within each rank.
+- **Scalability:** Designed for large-scale simulations on HPC clusters.
+
+### Building with MPI
+
+```bash
+mkdir build && cd build
+cmake .. -DUSE_MPI=ON
+make -j
+```
+
+To build with both MPI and unit tests:
+
+```bash
+cmake .. -DUSE_MPI=ON -DHPCLab_BUILD_TESTS=ON
+make -j
+```
+
+### Running the MPI Version
+
+```bash
+# Run with 4 MPI processes
+mpirun -np 4 ./barnesHutMPI -n 10000
+
+# Run with 8 processes and custom theta
+mpirun -np 8 ./barnesHutMPI -n 50000 -t 0.3 -s 100
+```
+
+### MPI Command Line Arguments
+
+| Argument | Description |
+|----------|-------------|
+| `-n, --particles <N>` | Number of particles to simulate |
+| `-t, --theta <θ>` | Opening angle (MAC parameter, default: 0.5) |
+| `-s, --steps <N>` | Number of simulation steps |
+| `-h, --help` | Display help message |
+
+### Running MPI Tests
+
+```bash
+# Run comparison tests with 4 MPI ranks
+mpirun -np 4 ./testMPIBarnesHut
+```
+
+The MPI tests compare:
+1. **Brute Force** - O(N²) reference implementation
+2. **OpenMP+SIMD Barnes-Hut** - Shared-memory parallel implementation
+3. **MPI Barnes-Hut** - Distributed-memory parallel implementation (Jülich approach)
+
+### Implementation Details
+
+The MPI implementation consists of:
+
+- `include/MortonCurve.h` / `src/MortonCurve.cpp` - Morton curve encoding/decoding for spatial ordering
+- `include/MPIBarnesHut.h` / `src/MPIBarnesHut.cpp` - MPI-parallelized Barnes-Hut algorithm
+- `src/mainMPI.cpp` - MPI application entry point
+- `tests/MPIBarnesHutTest.cpp` - Comprehensive comparison tests
