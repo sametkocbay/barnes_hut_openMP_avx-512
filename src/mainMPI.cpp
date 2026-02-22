@@ -14,7 +14,6 @@
 #include <vector>
 #include <array>
 #include <chrono>
-#include <filesystem>
 
 #include "initialization.h"
 #include "bruteForce.h"
@@ -70,7 +69,6 @@ int main(int argc, char** argv) {
     if (rank == 0) {
         std::cout << "=== MPI Barnes-Hut N-Body Simulation ===\n";
         std::cout << "MPI Ranks: " << numRanks << std::endl;
-        std::cout << "Working directory: " << std::filesystem::current_path() << std::endl;
     }
 
     try {

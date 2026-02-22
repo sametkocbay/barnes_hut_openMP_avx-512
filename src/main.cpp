@@ -7,7 +7,6 @@
 #include <array>
 #include <memory>
 #include <Cube.h>
-#include <filesystem>
 #include "particleNode.h"
 #include "Algorithm.h"
 #include "../config/JsonParser.h"
@@ -103,8 +102,7 @@ int main(int argc, char **argv) {
     // Declare Input Parameter Variables (as Struct config)
     Config config;
 
-    ///Debug Check: Check working directory from where to find json
-    std::cout << "Working directory: " << std::filesystem::current_path() << std::endl;
+    ///Debug Check: Check path from where to find json
     std::cout << "Loading config from: " << configFilePath << std::endl;
 
     // Get Input parameters from Config File into Config Struct
