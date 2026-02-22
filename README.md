@@ -1,14 +1,32 @@
 # Barnes-Hut N-Body Galaxy Simulation
 
+<p align="center">
+  <img src="visualization/nbody_morton_simulation.gif" alt="N-Body Simulation with Morton Domain Decomposition" width="700"/>
+</p>
+
+<p align="center">
+  <em>60 particles interacting under gravity — colored by MPI rank assignment via Morton curve domain decomposition</em>
+</p>
+
+---
+
 ## Overview
 
 This project simulates the dynamics of galaxy formation by calculating gravitational interactions between celestial bodies. While direct summation (Brute Force) scales with O(N²), this implementation utilizes the **Barnes-Hut algorithm** to approximate long-range interactions via an octree, reducing complexity to O(N log N).
 
-![Barnes-Hut Simulation Example](https://upload.wikimedia.org/wikipedia/commons/9/93/2D_Quad-Tree_partitioning_of_100_bodies.png)
+The project was developed in two phases:
 
-The simulation is optimized for performance using **OpenMP** parallelism, optional **AVX-512 SIMD** vectorization, and a **Structure of Arrays (SoA)** data layout. It compiles and runs on any modern C++17 compiler — AVX-512 is used automatically when available, otherwise a scalar fallback is used.
+1. **TUM University Project** — Together with my team, we implemented the core Barnes-Hut algorithm with **OpenMP** task-based parallelism, **AVX-512 SIMD** vectorization, and a **Structure of Arrays (SoA)** data layout for cache-efficient computation.
 
-## Key Features & Optimizations
+2. **MPI Extension (Solo)** — Building on that foundation, I independently implemented a distributed-memory **MPI-parallelized** version using **Morton (Z-order) space-filling curves** for domain decomposition, following the approach developed at Jülich Supercomputing Centre.
+
+Both versions compile and run on any modern C++17 compiler — AVX-512 is used automatically when available, otherwise a scalar fallback kicks in.
+
+---
+
+## Phase 1: OpenMP + SIMD Barnes-Hut
+
+### Key Features & Optimizations
 
 - **Barnes-Hut Approximation:** Clusters sufficiently far away (determined by the MAC / theta parameter) are treated as single point masses, computed via parallel octree traversal.
 - **Parallel Tree Construction & Destruction:** The domain is partitioned into sub-cubes, allowing 8^L independent subtrees to be constructed and destroyed concurrently using OpenMP tasks.
@@ -16,16 +34,16 @@ The simulation is optimized for performance using **OpenMP** parallelism, option
 - **SIMD Vectorization (AVX-512):** When available, the force calculation kernel is vectorized using AVX-512 intrinsics with batched processing. On systems without AVX-512, a scalar fallback is used automatically.
 - **Correctness Suite:** Includes a Google Test framework that compares Barnes-Hut results against a Brute Force baseline to ensure error remains within tolerance for various theta values.
 
-## Build Instructions
+### Build Instructions
 
-### Requirements
+#### Requirements
 
 - C++17 compiler (GCC, Clang, MSVC, etc.)
 - CMake ≥ 3.25
 - OpenMP support
 - (Optional) AVX-512 capable CPU for SIMD acceleration
 
-### Building
+#### Building
 
 ```bash
 mkdir build && cd build
@@ -49,11 +67,11 @@ make -j
 
 Tests can be run with `./testBarnesHut` from the build directory.
 
-## Usage
+### Usage
 
 The simulation can be configured via command line arguments or a `config.json` file.
 
-### Command Line Arguments
+#### Command Line Arguments
 
 Arguments passed to the executable override `config.json` defaults.
 
@@ -69,13 +87,13 @@ Arguments passed to the executable override `config.json` defaults.
 
 > **Note:** The `--simd-batches` parameter is limited to 16 by default (statically allocated buffers). To test larger batch sizes, edit `MAX_SIMD_BATCHES` in `include/InteractionForce.h` and recompile.
 
-### Example
+#### Example
 
 ```bash
 ./barnesHut -n 100000 --tree-level 3 --simd-batches 12
 ```
 
-### Configuration File (config.json)
+#### Configuration File (config.json)
 
 ```json
 {
@@ -89,40 +107,31 @@ Arguments passed to the executable override `config.json` defaults.
 }
 ```
 
-## Visualizations
+---
+
+## Phase 2: MPI-Parallelized Barnes-Hut (Jülich Approach)
+
+In the second phase, I independently extended the project with an **MPI-parallelized** implementation using **space-filling curves** (Morton / Z-order curves) for domain decomposition, inspired by the approach developed at Jülich Supercomputing Centre.
 
 ### Morton (Z-order) Space-Filling Curve
 
-The Morton curve maps 3D coordinates to a 1D index while preserving spatial locality — particles that are close in space stay close along the curve. This property is what makes it ideal for domain decomposition in the MPI implementation.
+The Morton curve maps 3D coordinates to a 1D index while preserving spatial locality — particles that are close in space stay close along the curve. This property makes it ideal for distributing particles across MPI ranks.
 
-**2D illustration** showing how the Z-order curve visits each cell:
+<p align="center">
+  <img src="visualization/morton_curve_2d.png" alt="Morton Curve 2D" width="420"/>
+</p>
 
-![Morton Curve 2D](visualization/morton_curve_2d.png)
+<p align="center">
+  <em>2D Z-order curve on an 8×8 grid — color indicates position along the curve</em>
+</p>
 
-**3D animated traversal** of the Morton curve on a 4×4×4 octree grid:
+<p align="center">
+  <img src="visualization/morton_curve_3d.gif" alt="Morton Curve 3D" width="550"/>
+</p>
 
-![Morton Curve 3D](visualization/morton_curve_3d.gif)
-
-### N-Body Simulation with MPI Domain Decomposition
-
-A small gravitational simulation (80 particles) showing how particles are partitioned across 4 MPI ranks using Morton curve ordering. Colors represent the rank each particle is assigned to, and the decomposition is dynamically rebalanced as particles move:
-
-![N-Body Morton Simulation](visualization/nbody_morton_simulation.gif)
-
-To regenerate these visualizations:
-
-```bash
-pip install matplotlib numpy
-python3 visualization/visualize_morton_curve.py
-```
-
-## About
-
-This project originated as a university project at TUM. I was involved in both the original implementation and the subsequent HPC optimization and parallelization work.
-
-## MPI-Parallelized Barnes-Hut (Jülich Approach)
-
-This project includes an MPI-parallelized implementation of the Barnes-Hut algorithm using space-filling curves (Morton/Z-order curves) for domain decomposition, inspired by the approach developed at Jülich Supercomputing Centre.
+<p align="center">
+  <em>3D animated traversal of the Morton curve on a 4×4×4 octree grid</em>
+</p>
 
 ### Key Features of MPI Implementation
 
@@ -131,7 +140,9 @@ This project includes an MPI-parallelized implementation of the Barnes-Hut algor
 - **Hybrid MPI+OpenMP:** Combines MPI for distributed memory parallelism with OpenMP for shared memory parallelism within each rank.
 - **Scalability:** Designed for large-scale simulations on HPC clusters.
 
-### Building with MPI
+### Building & Running
+
+#### Building with MPI
 
 ```bash
 mkdir build && cd build
@@ -146,7 +157,7 @@ cmake .. -DUSE_MPI=ON -DHPCLab_BUILD_TESTS=ON
 make -j
 ```
 
-### Running the MPI Version
+#### Running the MPI Version
 
 ```bash
 # Run with 4 MPI processes
@@ -156,7 +167,7 @@ mpirun -np 4 ./barnesHutMPI -n 10000
 mpirun -np 8 ./barnesHutMPI -n 50000 -t 0.3 -s 100
 ```
 
-### MPI Command Line Arguments
+#### MPI Command Line Arguments
 
 | Argument | Description |
 |----------|-------------|
@@ -165,7 +176,7 @@ mpirun -np 8 ./barnesHutMPI -n 50000 -t 0.3 -s 100
 | `-s, --steps <N>` | Number of simulation steps |
 | `-h, --help` | Display help message |
 
-### Running MPI Tests
+#### Running MPI Tests
 
 ```bash
 # Run comparison tests with 4 MPI ranks
@@ -181,7 +192,24 @@ The MPI tests compare:
 
 The MPI implementation consists of:
 
-- `include/MortonCurve.h` / `src/MortonCurve.cpp` - Morton curve encoding/decoding for spatial ordering
-- `include/MPIBarnesHut.h` / `src/MPIBarnesHut.cpp` - MPI-parallelized Barnes-Hut algorithm
-- `src/mainMPI.cpp` - MPI application entry point
-- `tests/MPIBarnesHutTest.cpp` - Comprehensive comparison tests
+- `include/MortonCurve.h` / `src/MortonCurve.cpp` — Morton curve encoding/decoding for spatial ordering
+- `include/MPIBarnesHut.h` / `src/MPIBarnesHut.cpp` — MPI-parallelized Barnes-Hut algorithm
+- `src/mainMPI.cpp` — MPI application entry point
+- `tests/MPIBarnesHutTest.cpp` — Comprehensive comparison tests
+
+---
+
+## Visualizations
+
+The Python script `visualization/visualize_morton_curve.py` generates all the animations and figures shown in this README. To regenerate:
+
+```bash
+pip install matplotlib numpy
+python3 visualization/visualize_morton_curve.py
+```
+
+---
+
+## About
+
+This project originated as a university project at **TUM** (Technical University of Munich). The OpenMP + SIMD implementation was developed as part of a team project. The MPI parallelization with space-filling curves was my independent follow-up extension.
